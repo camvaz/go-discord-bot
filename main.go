@@ -52,9 +52,6 @@ func main() {
 
 	s.AddHandler(bot.PresenceHandler)
 	s.AddHandler(bot.VoiceUpdateHandler)
-	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate){
-		bot.Log(m.Content)
-	})
 
 	err := s.Open()
 	if err != nil {
