@@ -13,8 +13,6 @@ import (
 
 var s *discordgo.Session
 
-var GuildID = flag.String("guild", "533184318676140032", "Test guild ID. If not passed - bot registers commands globally")
-
 func init() {
 	err := godotenv.Load()
 	if err != nil {
