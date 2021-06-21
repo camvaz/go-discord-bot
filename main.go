@@ -7,7 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/camvaz/ndejous-bot/handlers"
+	"github.com/camvaz/go-discord-bot/handlers"
 	"github.com/joho/godotenv"
 )
 
