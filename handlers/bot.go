@@ -10,15 +10,15 @@ import (
 
 type Bot struct {
 	l           *log.Logger
-	kingID	string
+	kingID      string
 	victimID    string
 	channelID   string
 	guildID     string
-	kingState bool
+	kingState   bool
 	victimState bool
 }
 
-func NewBot(l *log.Logger, kingID string,victimID string, channelID string, guildID string) *Bot {
+func NewBot(l *log.Logger, kingID string, victimID string, channelID string, guildID string) *Bot {
 	victimState := false
 	kingState := false
 	return &Bot{l, kingID, victimID, channelID, guildID, victimState, kingState}
@@ -55,10 +55,10 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 			defer dgv.Close()
 		} else {
 			message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
-		} 
+		}
 		b.victimState = !b.victimState
 
-		msg,err = s.ChannelMessageSend(
+		msg, err = s.ChannelMessageSend(
 			b.channelID,
 			message,
 		)
@@ -66,8 +66,8 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 			b.l.Printf("Error de mensaje: %v\n", err)
 		}
 
-		go func(){
-			time.Sleep(15 * time.Second);
+		go func() {
+			time.Sleep(15 * time.Second)
 			err = s.ChannelMessageDelete(b.channelID, msg.ID)
 			if err != nil {
 				b.l.Printf("Error al eliminar mensaje: %v\n", err)
@@ -84,7 +84,7 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 		}
 		b.kingState = !b.kingState
 
-		msg,err = s.ChannelMessageSend(
+		msg, err = s.ChannelMessageSend(
 			b.channelID,
 			message,
 		)
@@ -92,8 +92,8 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 			b.l.Printf("Error de mensaje: %v\n", err)
 		}
 
-		go func(){
-			time.Sleep(15 * time.Second);
+		go func() {
+			time.Sleep(15 * time.Second)
 			err = s.ChannelMessageDelete(b.channelID, msg.ID)
 			if err != nil {
 				b.l.Printf("Error al eliminar mensaje: %v\n", err)
