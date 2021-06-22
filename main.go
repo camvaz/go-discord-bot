@@ -29,17 +29,12 @@ func init() {
 }
 
 func main() {
-	GeneralChannelID := os.Getenv("DISCORD_GENERAL_CHANNEL")
+	KingID := os.Getenv("DISCORD_KING_ID")
 	VictimID := os.Getenv("DISCORD_MIMIR_ID")
 	ChannelID := os.Getenv("DISCORD_GENERAL_CHANNEL")
 	GuildID := os.Getenv("DISCORD_GUILD_ID")
 	l := log.New(os.Stdout, "ndejous-bot", log.LstdFlags)
-	bot := handlers.NewBot(l, VictimID, ChannelID, GuildID)
-	generalChannel := &discordgo.Channel{
-		ID: GeneralChannelID,
-	}
-
-	s.State.ChannelAdd(generalChannel)
+	bot := handlers.NewBot(l, KingID, VictimID, ChannelID, GuildID)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		bot.Log("Session ready")
