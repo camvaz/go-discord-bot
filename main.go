@@ -57,6 +57,7 @@ func main() {
 
 	stop := make(chan os.Signal)
 	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Kill)
 	<-stop
-	bot.Log("Gracefully shutdowning")
+	bot.Log("Gracefully shutting down")
 }
