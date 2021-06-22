@@ -4,14 +4,15 @@ import (
 	"log"
 	"os"
 
+	"github.com/bwmarrin/dgvoice"
 	"github.com/bwmarrin/discordgo"
 )
 
 type Bot struct {
-	l *log.Logger
-	victimID string
-	channelID string
-	guildID string
+	l           *log.Logger
+	victimID    string
+	channelID   string
+	guildID     string
 	victimState bool
 }
 
@@ -24,64 +25,63 @@ func (b *Bot) Log(s string) {
 	b.l.Println(s)
 }
 
-func (b *Bot) FatalLog(s string, v error){
-	b.l.Fatalf(s,v)
+func (b *Bot) FatalLog(s string, v error) {
+	b.l.Fatalf(s, v)
 }
 
-func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate){
-	b.l.Printf("Connected: %s. Victim: %s", m.UserID, b.victimID)
-	if m.UserID != b.victimID{
+func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
+	if m.UserID != b.victimID {
 		return
 	}
 	var message string
-	if !b.victimState  {
-		message = "/tts ola mimir webos mimir"
+
+	if !b.victimState {
+		message = "ola mimir webos mimir"
+		dgv, err := s.ChannelVoiceJoin(b.guildID, m.ChannelID, false, true)
+		if err != nil {
+			b.l.Printf("Error: %v", err)
+			return
+		}
+		dgvoice.PlayAudioFile(dgv, "./media/webos.m4a", make(chan bool))
+		dgv.Close()
+
 	} else {
-		message = "/tts adios mimir webos mimir"
+		message = "adios mimir webos mimir"
 	}
 
-	b.victimState = !b.victimState
 	s.ChannelMessageSend(
 		b.channelID,
 		message,
 	)
+
+	b.victimState = !b.victimState
 }
 
 func (b *Bot) PresenceHandler(s *discordgo.Session, m *discordgo.PresenceUpdate) {
 	MimirID := os.Getenv("DISCORD_MIMIR_ID")
-	GuildID := os.Getenv("DISCORD_GUILD_ID")
-	ChannelID := os.Getenv("DISCORD_GENERAL_CHANNEL")
 	b.l.Printf("PresenceHandler - User: %s", m.User.Username)
-
 	isMimir := m.User.ID == MimirID
+
 	if !isMimir {
 		return
 	}
 
-	var message discordgo.MessageCreate
 	isOffline := m.Status == discordgo.Status("offline")
 	if isOffline {
-		// Handle mimir not online
-		message = discordgo.MessageCreate{
-			Message: &discordgo.Message{
-				GuildID:   GuildID,
-				ChannelID: ChannelID,
-				Content:   "Mimir se desconectó, no podía saberse, seguiremos vigilantes.",
-			},
-		}
-		s.State.MessageAdd(message.Message)
+		s.ChannelMessageSend(
+			b.channelID,
+			"Mimir se desconectó, no podía saberse, seguiremos vigilantes.",
+		)
 		return
 	}
 
 	isOnline := m.Status == discordgo.Status("online")
 	if isOnline {
-	message = discordgo.MessageCreate{
-		Message: &discordgo.Message{
-			GuildID:   GuildID,
-			ChannelID: ChannelID,
-			Content:   "Se conecto el mimir, preparen sus huevos. https://tenor.com/view/breakfast-lunch-brunch-dinner-eggs-gif-9519822",
-		},
+		s.ChannelMessageSend(
+			b.channelID,
+			"Se conecto el mimir, preparen sus huevos. https://tenor.com/view/breakfast-lunch-brunch-dinner-eggs-gif-9519822",
+		)
+		return
 	}
-	s.State.MessageAdd(message.Message)
-	}
+
 }
