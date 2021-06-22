@@ -82,6 +82,10 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 		return
 	}
 
+	if splittedCommand[0] == "help" {
+		b.sendMessage(s,b.channelID, "jaja nomamen ya mero creen que les voy a documentar esta mamada")
+	}
+
 	if splittedCommand[0] == "mimir" {
 		b.sendMessage(s, b.channelID,
 			"░░░░░░░░░▄░░░░░░░░░░░░░░▄\n"+
