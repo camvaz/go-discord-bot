@@ -12,6 +12,7 @@ import (
 
 var s *discordgo.Session
 
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -34,7 +35,7 @@ func main() {
 	ChannelID := os.Getenv("DISCORD_GENERAL_CHANNEL")
 	GuildID := os.Getenv("DISCORD_GUILD_ID")
 	l := log.New(os.Stdout, "ndejous-bot", log.LstdFlags)
-	bot := handlers.NewBot(l, KingID, VictimID, ChannelID, GuildID)
+	bot := handlers.NewBot(l, KingID, VictimID, ChannelID, GuildID, "$")
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		bot.Log("Session ready")
@@ -42,6 +43,7 @@ func main() {
 
 	s.AddHandler(bot.PresenceHandler)
 	s.AddHandler(bot.VoiceUpdateHandler)
+	s.AddHandler(bot.MessageCreationHandler)
 
 	err := s.Open()
 	if err != nil {
