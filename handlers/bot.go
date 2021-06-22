@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"log"
-	"os"
 
 	"github.com/bwmarrin/dgvoice"
 	"github.com/bwmarrin/discordgo"
@@ -30,37 +29,36 @@ func (b *Bot) FatalLog(s string, v error) {
 }
 
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
+	b.l.Printf("User: %s\n", m.UserID)
 	if m.UserID != b.victimID {
 		return
 	}
-	var message string
+	// var message string
 
 	if !b.victimState {
-		message = "ola mimir webos mimir"
+		// message = "ola mimir webos mimir"
 		dgv, err := s.ChannelVoiceJoin(b.guildID, m.ChannelID, false, true)
 		if err != nil {
 			b.l.Printf("Error: %v", err)
 			return
 		}
 		dgvoice.PlayAudioFile(dgv, "./media/webos.m4a", make(chan bool))
-		dgv.Close()
-
+		defer dgv.Close()
 	} else {
-		message = "adios mimir webos mimir"
+		// message = "adios mimir webos mimir"
 	}
 
-	s.ChannelMessageSend(
-		b.channelID,
-		message,
-	)
+	// s.ChannelMessageSend(
+	// 	b.channelID,
+	// 	message,
+	// )
 
 	b.victimState = !b.victimState
 }
 
 func (b *Bot) PresenceHandler(s *discordgo.Session, m *discordgo.PresenceUpdate) {
-	MimirID := os.Getenv("DISCORD_MIMIR_ID")
 	b.l.Printf("PresenceHandler - User: %s", m.User.Username)
-	isMimir := m.User.ID == MimirID
+	isMimir := m.User.ID == b.victimID
 
 	if !isMimir {
 		return
@@ -83,5 +81,4 @@ func (b *Bot) PresenceHandler(s *discordgo.Session, m *discordgo.PresenceUpdate)
 		)
 		return
 	}
-
 }
