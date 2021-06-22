@@ -70,7 +70,6 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 	if chatCommand != b.commandFlag {
 		return
 	}
-
 	chatMessage := m.Content[1:]
 	splittedCommand := strings.Split(chatMessage, " ")
 
@@ -163,31 +162,4 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	}
 
 	b.sendMessage(s, b.channelID, message)
-}
-
-func (b *Bot) PresenceHandler(s *discordgo.Session, m *discordgo.PresenceUpdate) {
-	b.l.Printf("PresenceHandler - User: %s", m.User.ID)
-	b.l.Printf("PresesnceHandler - VictimID: %s", b.victimID)
-	isMimir := m.User.ID == b.victimID
-
-
-	if !isMimir {
-		return
-	}
-
-	isOffline := m.Status == discordgo.Status("offline")
-	if isOffline {
-		b.sendMessage(s, b.channelID,
-			"Mimir se desconectó, no podía saberse, seguiremos vigilantes.",
-		)
-		return
-	}
-
-	isOnline := m.Status == discordgo.Status("online")
-	if isOnline {
-		b.sendMessage(s, b.channelID,
-			"Se conecto el mimir, preparen sus huevos. https://tenor.com/view/breakfast-lunch-brunch-dinner-eggs-gif-9519822",
-		)
-		return
-	}
 }
