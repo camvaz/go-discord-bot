@@ -3,13 +3,13 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/dgvoice"
 	"github.com/bwmarrin/discordgo"
+	"github.com/camvaz/go-discord-bot/strategies"
+	"github.com/camvaz/go-discord-bot/utils"
 )
 
 type Bot struct {
@@ -37,97 +37,32 @@ func (b *Bot) FatalLog(s string, v error) {
 	b.l.Fatalf(s, v)
 }
 
-func (b *Bot) sendMessage(s *discordgo.Session, channelID string, message string) {
-	var err error
-	var msg *discordgo.Message
-	msg, err = s.ChannelMessageSend(
-		channelID,
-		message,
-	)
-	if err != nil {
-		b.l.Printf("Error de mensaje: %v\n", err)
-	}
-
-	go func() {
-		time.Sleep(15 * time.Second)
-		err = s.ChannelMessageDelete(b.channelID, msg.ID)
-		if err != nil {
-			b.l.Printf("Error al eliminar mensaje: %v\n", err)
-
-		}
-	}()
-}
-
 func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.ChannelID != b.channelID {
-		return
-	}
-	if len(m.Content) <= 1 {
-		b.sendMessage(s, b.channelID, "ke kieres we ? \n\n")
 		return
 	}
 	chatCommand := m.Content[0:1]
 	if chatCommand != b.commandFlag {
 		return
 	}
+	if len(m.Content) <= 1 {
+		utils.SendMessage(s, b.channelID, "ke kieres we ? \n\n")
+		return
+	}
 	chatMessage := m.Content[1:]
 	splittedCommand := strings.Split(chatMessage, " ")
 
-	if splittedCommand[0] == "funa" {
-		if len(splittedCommand) == 1 {
-			b.sendMessage(s, b.channelID, "webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692\n")
-			return
+	switch len(splittedCommand) {
+	case 1:
+		if val, ok := strategies.SimpleCommandStrategy[splittedCommand[0]]; ok {
+			val(s, b.channelID)
 		}
-		b.sendMessage(s, b.channelID, fmt.Sprintf("webos %s \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692\n", splittedCommand[1]))
-		return
-	}
-
-	if splittedCommand[0] == "help" {
-		b.sendMessage(s,b.channelID, "jaja nomamen ya mero creen que les voy a documentar esta mamada")
-	}
-
-	if splittedCommand[0] == "mimir" {
-		b.sendMessage(s, b.channelID,
-			"░░░░░░░░░▄░░░░░░░░░░░░░░▄\n"+
-				"░░░░░░░░▌▒█░░░░░░░░░░░▄▀▒▌\n"+
-				"░░░░░░░░▌▒▒█░░░░░░░░▄▀▒▒▒▐\n"+
-				"░░░░░░░▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐\n"+
-				"░░░░░▄▄▀▒░▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐\n"+
-				"░░░▄▀▒▒▒░░░▒▒▒░░░▒▒▒▀██▀▒▌\n"+
-				"░░▐▒▒▒▄▄▒▒▒▒░░░▒▒▒▒▒▒▒▀▄▒▒▌\n"+
-				"░░▌░░▌█▀▒▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐\n"+
-				"░▐░░░▒▒▒▒▒▒▒▒▌██▀▒▒░░░▒▒▒▀▄▌\n"+
-				"░▌░▒▄██▄▒▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒▌\n"+
-				"▌▒▀▐▄█▄█▌▄░▀▒▒░░░░░░░░░░▒▒▒▐\n"+
-				"▐▒▒▐▀▐▀▒░▄▄▒▄▒▒▒▒▒▒░▒░▒░▒▒▒▒▌\n"+
-				"▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒▒▒░▒░▒░▒▒▐\n"+
-				"░▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒░▒░▒░▒░▒▒▒▌\n"+
-				"░▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒░▒░▒░▒▒▄▒▒▐\n"+
-				"░░▀▄▒▒▒▒▒▒▒▒▒▒▒░▒░▒░▒▄▒▒▒▒▌\n"+
-				"░░░░▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀\n"+
-				"░░░░░░▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀\n"+
-				"░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▀▀\n",
-		)
-	}
-
-	if splittedCommand[0] == "shrek" {
-		b.sendMessage(s, b.channelID,
-			"⢀⡴⠑⡄⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠸⡇⠀⠿⡀⠀⠀⠀⣀⡴⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠑⢄⣠⠾⠁⣀⣄⡈⠙⣿⣿⣿⣿⣿⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⢀⡀⠁⠀⠀⠈⠙⠛⠂⠈⣿⣿⣿⣿⣿⠿⡿⢿⣆⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⢀⡾⣁⣀⠀⠴⠂⠙⣗⡀⠀⢻⣿⣿⠭⢤⣴⣦⣤⣹⠀⠀⠀⢀⢴⣶⣆\n"+
-				"⠀⠀⢀⣾⣿⣿⣿⣷⣮⣽⣾⣿⣥⣴⣿⣿⡿⢂⠔⢚⡿⢿⣿⣦⣴⣾⠁⠸⣼⡿\n"+
-				"⠀⢀⡞⠁⠙⠻⠿⠟⠉⠀⠛⢹⣿⣿⣿⣿⣿⣌⢤⣼⣿⣾⣿⡟⠉⠀⠀⠀⠀⠀\n"+
-				"⠀⣾⣷⣶⠇⠀⠀⣤⣄⣀⡀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠉⠈⠉⠀⠀⢦⡈⢻⣿⣿⣿⣶⣶⣶⣶⣤⣽⡹⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠀⠀⠀⠉⠲⣽⡻⢿⣿⣿⣿⣿⣿⣿⣷⣜⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣷⣶⣮⣭⣽⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠀⠀⣀⣀⣈⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀\n"+
-				"⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠻⠿⠿⠿⠿⠛⠉\n",
-		)
+	case 2:
+		if val, ok := strategies.ArgCommandStrategy[splittedCommand[0]]; ok {
+			val(s, b.channelID, splittedCommand[1])
+		}
+	default:
+		utils.SendMessage(s, b.channelID, "a")
 	}
 }
 
@@ -165,5 +100,5 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 		b.kingState = !b.kingState
 	}
 
-	b.sendMessage(s, b.channelID, message)
+	utils.SendMessage(s, b.channelID, message)
 }
