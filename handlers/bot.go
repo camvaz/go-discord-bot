@@ -36,7 +36,7 @@ func (b *Bot) FatalLog(s string, v error) {
 }
 
 func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.ChannelID != b.channelID {
+	if m.ChannelID != b.channelID || len(m.Content) == 0 {
 		return
 	}
 	chatCommand := m.Content[0:1]
