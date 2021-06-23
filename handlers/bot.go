@@ -67,7 +67,6 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 }
 
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
-	b.l.Printf("User: %s\n", m.UserID)
 	isVictim := m.UserID == b.victimID
 	isKing := m.UserID == b.kingID
 	if !isVictim && !isKing {
