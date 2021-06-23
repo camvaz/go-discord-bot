@@ -39,7 +39,6 @@ func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		bot.Log("Session ready")
 	})
-
 	s.AddHandler(bot.VoiceUpdateHandler)
 	s.AddHandler(bot.MessageCreationHandler)
 

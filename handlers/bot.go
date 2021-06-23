@@ -81,7 +81,8 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 				return
 			}
 			dgvoice.PlayAudioFile(dgv, "./media/webos.m4a", make(chan bool))
-			defer dgv.Close()
+			dgv.Disconnect()
+			 dgv.Close()
 		} else {
 			message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
 		}
