@@ -1,5 +1,3 @@
-// Bot handler
-// TODO: refactor ascii and messages
 package handlers
 
 import (
