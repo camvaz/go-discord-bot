@@ -76,7 +76,7 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 
 	if isPollo {
 		if !b.polloState{
-			utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.m4a")
+			utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg")
 		}	
 		b.polloState = !b.polloState
 		return
