@@ -4,7 +4,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/bwmarrin/dgvoice"
 	"github.com/bwmarrin/discordgo"
 	"github.com/camvaz/go-discord-bot/strategies"
 	"github.com/camvaz/go-discord-bot/utils"
@@ -14,17 +13,20 @@ type Bot struct {
 	l           *log.Logger
 	kingID      string
 	victimID    string
+	polloID     string
 	channelID   string
 	guildID     string
 	commandFlag string
 	kingState   bool
 	victimState bool
+	polloState  bool
 }
 
-func NewBot(l *log.Logger, kingID string, victimID string, channelID string, guildID string, commandFlag string) *Bot {
+func NewBot(l *log.Logger, kingID string, victimID string, polloID string, channelID string, guildID string, commandFlag string) *Bot {
 	victimState := false
 	kingState := false
-	return &Bot{l, kingID, victimID, channelID, guildID, commandFlag, victimState, kingState}
+	polloState := false
+	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, victimState, kingState, polloState}
 }
 
 func (b *Bot) Log(s string) {
@@ -67,7 +69,16 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
 	isVictim := m.UserID == b.victimID
 	isKing := m.UserID == b.kingID
-	if !isVictim && !isKing {
+	isPollo := m.UserID == b.polloID
+	if !isVictim && !isKing && !isPollo {
+		return
+	}
+
+	if isPollo {
+		if !b.polloState{
+			utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.m4a")
+		}	
+		b.polloState = !b.polloState
 		return
 	}
 
@@ -75,14 +86,7 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	if isVictim {
 		if !b.victimState {
 			message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
-			dgv, err := s.ChannelVoiceJoin(b.guildID, m.ChannelID, false, true)
-			if err != nil {
-				b.l.Printf("Error: %v", err)
-				return
-			}
-			dgvoice.PlayAudioFile(dgv, "./media/webos.m4a", make(chan bool))
-			dgv.Disconnect()
-			 dgv.Close()
+			utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a")
 		} else {
 			message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
 		}

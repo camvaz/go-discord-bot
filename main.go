@@ -31,10 +31,11 @@ func init() {
 func main() {
 	KingID := os.Getenv("DISCORD_KING_ID")
 	VictimID := os.Getenv("DISCORD_VICTIM_ID")
+	PolloID := os.Getenv("DISCORD_POLLO_ID")
 	ChannelID := os.Getenv("DISCORD_GENERAL_CHANNEL")
 	GuildID := os.Getenv("DISCORD_GUILD_ID")
 	l := log.New(os.Stdout, "ndejous-bot", log.LstdFlags)
-	bot := handlers.NewBot(l, KingID, VictimID, ChannelID, GuildID, "$")
+	bot := handlers.NewBot(l, KingID, VictimID, PolloID, ChannelID, GuildID, "$")
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		bot.Log("Session ready")
