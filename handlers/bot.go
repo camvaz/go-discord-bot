@@ -20,13 +20,15 @@ type Bot struct {
 	kingState   bool
 	victimState bool
 	polloState  bool
+	kingChannel string
 }
 
 func NewBot(l *log.Logger, kingID string, victimID string, polloID string, channelID string, guildID string, commandFlag string) *Bot {
 	victimState := false
 	kingState := false
 	polloState := false
-	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, victimState, kingState, polloState}
+	kingChannel := ""
+	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, victimState, kingState, polloState, kingChannel}
 }
 
 func (b *Bot) Log(s string) {
@@ -51,19 +53,28 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 	}
 	chatMessage := m.Content[1:]
 	splittedCommand := strings.Split(chatMessage, " ")
-
-	switch len(splittedCommand) {
-	case 1:
-		if val, ok := strategies.SimpleCommandStrategy[splittedCommand[0]]; ok {
-			val(s, b.channelID)
-		}
-	case 2:
-		if val, ok := strategies.ArgCommandStrategy[splittedCommand[0]]; ok {
-			val(s, b.channelID, splittedCommand[1])
-		}
-	default:
-		utils.SendMessage(s, b.channelID, "a")
+	
+	if val, ok := strategies.SimpleCommandStrategy[splittedCommand[0]]; ok {
+		val(s, b.channelID)
+		return
 	}
+	if val, ok := strategies.ArgCommandStrategy[splittedCommand[0]]; ok {
+		if len(splittedCommand) <= 1{
+			return;
+		}
+		val(s, b.channelID, splittedCommand[1])
+		return
+	}
+	if val, ok := strategies.VoiceKingCommand[splittedCommand[0]]; ok && m.Author.ID == b.kingID  {
+		if len(b.kingChannel) == 0 {
+			utils.SendMessage(s,b.channelID, "Bips no estas en un canal de voz nmms")
+			return
+		}
+		val(s, b.guildID, b.kingChannel)
+		return
+	}
+
+	utils.SendMessage(s, b.channelID, "a")
 }
 
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
@@ -96,8 +107,10 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	if isKing {
 		if !b.kingState {
 			message = "Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
+			b.kingChannel = m.ChannelID
 		} else {
 			message = "El rey bips se retira, larga vida al rey bips.\n\nhttps://tenor.com/view/mic-drop-im-out-king-minion-gif-10937564"
+			b.kingChannel = ""
 		}
 		b.kingState = !b.kingState
 	}
