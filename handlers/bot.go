@@ -17,18 +17,14 @@ type Bot struct {
 	channelID   string
 	guildID     string
 	commandFlag string
-	kingState   bool
-	victimState bool
-	polloState  bool
 	kingChannel string
+	sessionMap  map[string]string
 }
 
 func NewBot(l *log.Logger, kingID string, victimID string, polloID string, channelID string, guildID string, commandFlag string) *Bot {
-	victimState := false
-	kingState := false
-	polloState := false
 	kingChannel := ""
-	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, victimState, kingState, polloState, kingChannel}
+	sessionMap := map[string]string{}
+	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, kingChannel, sessionMap}
 }
 
 func (b *Bot) Log(s string) {
@@ -37,6 +33,17 @@ func (b *Bot) Log(s string) {
 
 func (b *Bot) FatalLog(s string, v error) {
 	b.l.Fatalf(s, v)
+}
+
+func (b *Bot) setUserSession(m *discordgo.VoiceStateUpdate){
+	_, ok := b.sessionMap[m.UserID] 
+	if ok {
+		if m.ChannelID == ""{
+			delete(b.sessionMap, m.UserID)
+		}	
+		return
+	}
+	b.sessionMap[m.UserID] = m.ChannelID
 }
 
 func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -65,12 +72,14 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 		val(s, b.channelID, splittedCommand[1])
 		return
 	}
-	if val, ok := strategies.VoiceKingCommand[splittedCommand[0]]; ok && m.Author.ID == b.kingID  {
-		if len(b.kingChannel) == 0 {
-			utils.SendMessage(s,b.channelID, "Bips no estas en un canal de voz nmms")
-			return
-		}
-		val(s, b.guildID, b.kingChannel)
+
+	channelID, inChannel := b.sessionMap[m.Author.ID]
+	voiceCommand, okVoiceCommand := strategies.VoiceKingCommand[splittedCommand[0]];
+	if okVoiceCommand && inChannel {
+		voiceCommand(s, b.guildID, channelID)
+		return
+	} else if okVoiceCommand && !inChannel {
+		utils.SendMessage(s,b.channelID, "no estas en un canal de voz nmms we")
 		return
 	}
 
@@ -78,42 +87,27 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 }
 
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
-	isVictim := m.UserID == b.victimID
-	isKing := m.UserID == b.kingID
-	isPollo := m.UserID == b.polloID
-	if !isVictim && !isKing && !isPollo {
+	b.setUserSession(m)
+	utils.PrettyPrint(b.sessionMap)
+	var ok bool
+	if _, ok = b.sessionMap[b.polloID]; ok && m.UserID == b.polloID{
+		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg")
 		return
-	}
-
-	if isPollo {
-		if !b.polloState{
-			utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg")
-		}	
-		b.polloState = !b.polloState
-		return
-	}
+	}	
 
 	var message string
-	if isVictim {
-		if !b.victimState {
-			message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
-			utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a")
-		} else {
-			message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
-		}
-		b.victimState = !b.victimState
+	if _, ok = b.sessionMap[b.victimID]; ok && m.UserID == b.victimID{
+		message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
+		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a")
+	} else {
+		message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
 	}
 
-	if isKing {
-		if !b.kingState {
-			message = "Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
-			b.kingChannel = m.ChannelID
-		} else {
-			message = "El rey bips se retira, larga vida al rey bips.\n\nhttps://tenor.com/view/mic-drop-im-out-king-minion-gif-10937564"
-			b.kingChannel = ""
-		}
-		b.kingState = !b.kingState
+	if _, ok = b.sessionMap[b.kingID]; ok && m.UserID == b.kingID {
+		message ="Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
+	} else {
+		message = "El rey bips se retira, larga vida al rey bips.\n\nhttps://tenor.com/view/mic-drop-im-out-king-minion-gif-10937564"
 	}
 
-	utils.SendMessage(s, b.channelID, message)
+	utils.SendMessage(s, b.channelID,message )
 }

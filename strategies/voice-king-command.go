@@ -9,4 +9,7 @@ var VoiceKingCommand map[string]func(s *discordgo.Session, guildID, channelID st
 	"voice-mimir": func(s *discordgo.Session, guildID, channelID string) {
 		utils.PlayAudio(s, guildID, channelID, "./media/webos.m4a")
 	},
+	"voice-pollo": func(s *discordgo.Session, guildID, channelID string) {
+		utils.PlayAudio(s, guildID, channelID, "./media/pollo-greet.ogg")
+	},
 } 
