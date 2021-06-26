@@ -17,14 +17,12 @@ type Bot struct {
 	channelID   string
 	guildID     string
 	commandFlag string
-	kingChannel string
 	sessionMap  map[string]string
 }
 
 func NewBot(l *log.Logger, kingID string, victimID string, polloID string, channelID string, guildID string, commandFlag string) *Bot {
-	kingChannel := ""
 	sessionMap := map[string]string{}
-	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, kingChannel, sessionMap}
+	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, sessionMap}
 }
 
 func (b *Bot) Log(s string) {
@@ -62,14 +60,14 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 	splittedCommand := strings.Split(chatMessage, " ")
 	
 	if val, ok := strategies.SimpleCommandStrategy[splittedCommand[0]]; ok {
-		val(s, b.channelID)
+		val(s, m.ChannelID)
 		return
 	}
 	if val, ok := strategies.ArgCommandStrategy[splittedCommand[0]]; ok {
 		if len(splittedCommand) <= 1{
 			return;
 		}
-		val(s, b.channelID, splittedCommand[1])
+		val(s, m.ChannelID, splittedCommand[1])
 		return
 	}
 
@@ -79,11 +77,11 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 		voiceCommand(s, b.guildID, channelID)
 		return
 	} else if okVoiceCommand && !inChannel {
-		utils.SendMessage(s,b.channelID, "no estas en un canal de voz nmms we")
+		utils.SendMessage(s,m.ChannelID, "no estas en un canal de voz nmms we")
 		return
 	}
 
-	utils.SendMessage(s, b.channelID, "a")
+	utils.SendMessage(s, m.ChannelID, "a")
 }
 
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
@@ -99,19 +97,19 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	if _, ok = b.sessionMap[b.victimID]; ok && m.UserID == b.victimID{
 		message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
 		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a")
-		utils.SendMessage(s, b.channelID,message)
+		utils.SendMessage(s, b.channelID, message)
 		return
 	} else if m.UserID == b.victimID {
 		message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
-		utils.SendMessage(s, b.channelID,message)
+		utils.SendMessage(s, b.channelID, message)
 		return
 	}
 
 	if _, ok = b.sessionMap[b.kingID]; ok && m.UserID == b.kingID {
 		message ="Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
-		utils.SendMessage(s, b.channelID,message)
+		utils.SendMessage(s, b.channelID, message)
 	} else if m.UserID == b.kingID {
 		message = "El rey bips se retira, larga vida al rey bips.\n\nhttps://tenor.com/view/mic-drop-im-out-king-minion-gif-10937564"
-		utils.SendMessage(s, b.channelID,message)
+		utils.SendMessage(s, b.channelID, message)
 	}
 }
