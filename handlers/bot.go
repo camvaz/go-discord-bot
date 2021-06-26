@@ -99,15 +99,19 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	if _, ok = b.sessionMap[b.victimID]; ok && m.UserID == b.victimID{
 		message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
 		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a")
-	} else {
+		utils.SendMessage(s, b.channelID,message)
+		return
+	} else if m.UserID == b.victimID {
 		message = "adios mimir webos mimir \n\nhttps://tenor.com/view/huevos-eggs-gif-10539909"
+		utils.SendMessage(s, b.channelID,message)
+		return
 	}
 
 	if _, ok = b.sessionMap[b.kingID]; ok && m.UserID == b.kingID {
 		message ="Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
-	} else {
+		utils.SendMessage(s, b.channelID,message)
+	} else if m.UserID == b.kingID {
 		message = "El rey bips se retira, larga vida al rey bips.\n\nhttps://tenor.com/view/mic-drop-im-out-king-minion-gif-10937564"
+		utils.SendMessage(s, b.channelID,message)
 	}
-
-	utils.SendMessage(s, b.channelID,message )
 }
