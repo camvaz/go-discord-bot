@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func PrettyPrint(x interface{}){
+func PrettyPrint(x interface{}) {
 	b, err := json.MarshalIndent(x, "", "  ")
 	if err != nil {
 		log.Println("error:", err)

@@ -10,14 +10,14 @@ import (
 )
 
 type Bot struct {
-	l           *log.Logger
-	kingID      string
-	victimID    string
-	polloID     string
-	channelID   string
-	guildID     string
-	commandFlag string
-	sessionMap  map[string]string
+	l            *log.Logger
+	kingID       string
+	victimID     string
+	polloID      string
+	channelID    string
+	guildID      string
+	commandFlag  string
+	sessionMap   map[string]string
 	audioSession map[string]bool
 }
 
@@ -35,12 +35,12 @@ func (b *Bot) FatalLog(s string, v error) {
 	b.l.Fatalf(s, v)
 }
 
-func (b *Bot) setUserSession(m *discordgo.VoiceStateUpdate){
-	_, ok := b.sessionMap[m.UserID] 
+func (b *Bot) setUserSession(m *discordgo.VoiceStateUpdate) {
+	_, ok := b.sessionMap[m.UserID]
 	if ok {
-		if m.ChannelID == ""{
+		if m.ChannelID == "" {
 			delete(b.sessionMap, m.UserID)
-		}	
+		}
 		return
 	}
 	b.sessionMap[m.UserID] = m.ChannelID
@@ -49,7 +49,7 @@ func (b *Bot) setUserSession(m *discordgo.VoiceStateUpdate){
 	utils.PrettyPrint(b.sessionMap)
 }
 
-func (b *Bot) setAudioSession(channel string){
+func (b *Bot) setAudioSession(channel string) {
 	_, inSession := b.audioSession[channel]
 	if inSession {
 		delete(b.audioSession, channel)
@@ -74,27 +74,27 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 	}
 	chatMessage := m.Content[1:]
 	splittedCommand := strings.Split(chatMessage, " ")
-	
+
 	if val, ok := strategies.SimpleCommandStrategy[splittedCommand[0]]; ok {
 		val(s, m.ChannelID)
 		return
 	}
 	if val, ok := strategies.ArgCommandStrategy[splittedCommand[0]]; ok {
-		if len(splittedCommand) <= 1{
-			return;
+		if len(splittedCommand) <= 1 {
+			return
 		}
 		val(s, m.ChannelID, splittedCommand[1])
 		return
 	}
 
 	channelID, inChannel := b.sessionMap[m.Author.ID]
-	voiceCommand, okVoiceCommand := strategies.VoiceKingCommand[splittedCommand[0]];
-	
+	voiceCommand, okVoiceCommand := strategies.VoiceKingCommand[splittedCommand[0]]
+
 	if okVoiceCommand && inChannel {
 		voiceCommand(s, b.guildID, channelID, b.setAudioSession, b.audioSession)
 		return
 	} else if okVoiceCommand && !inChannel {
-		utils.SendMessage(s,m.ChannelID, "no estas en un canal de voz nmms we")
+		utils.SendMessage(s, m.ChannelID, "no estas en un canal de voz nmms we")
 		return
 	}
 
@@ -105,15 +105,15 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	b.setUserSession(m)
 	var ok bool
 
-	if _, ok = b.sessionMap[b.polloID]; ok && m.UserID == b.polloID{
-		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg",b.setAudioSession, b.audioSession)
+	if _, ok = b.sessionMap[b.polloID]; ok && m.UserID == b.polloID {
+		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg", b.setAudioSession, b.audioSession)
 		return
 	}
 
 	var message string
-	if _, ok = b.sessionMap[b.victimID]; ok && m.UserID == b.victimID{
+	if _, ok = b.sessionMap[b.victimID]; ok && m.UserID == b.victimID {
 		message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
-		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a",b.setAudioSession, b.audioSession)
+		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a", b.setAudioSession, b.audioSession)
 		utils.SendMessage(s, b.channelID, message)
 		return
 	} else if m.UserID == b.victimID {
@@ -123,7 +123,7 @@ func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUp
 	}
 
 	if _, ok = b.sessionMap[b.kingID]; ok && m.UserID == b.kingID {
-		message ="Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
+		message = "Llego el rey bips. \n\nhttps://tenor.com/view/clapping-drake-applause-proud-gif-9919565"
 		utils.SendMessage(s, b.channelID, message)
 	} else if m.UserID == b.kingID {
 		message = "El rey bips se retira, larga vida al rey bips.\n\nhttps://tenor.com/view/mic-drop-im-out-king-minion-gif-10937564"
