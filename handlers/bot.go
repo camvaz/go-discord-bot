@@ -18,11 +18,13 @@ type Bot struct {
 	guildID     string
 	commandFlag string
 	sessionMap  map[string]string
+	audioSession map[string]bool
 }
 
 func NewBot(l *log.Logger, kingID string, victimID string, polloID string, channelID string, guildID string, commandFlag string) *Bot {
 	sessionMap := map[string]string{}
-	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, sessionMap}
+	audioSession := map[string]bool{}
+	return &Bot{l, kingID, victimID, polloID, channelID, guildID, commandFlag, sessionMap, audioSession}
 }
 
 func (b *Bot) Log(s string) {
@@ -42,6 +44,20 @@ func (b *Bot) setUserSession(m *discordgo.VoiceStateUpdate){
 		return
 	}
 	b.sessionMap[m.UserID] = m.ChannelID
+
+	b.l.Println("User session:")
+	utils.PrettyPrint(b.sessionMap)
+}
+
+func (b *Bot) setAudioSession(channel string){
+	_, inSession := b.audioSession[channel]
+	if inSession {
+		delete(b.audioSession, channel)
+	} else {
+		b.audioSession[channel] = true
+	}
+	b.l.Println("Audio session:")
+	utils.PrettyPrint(b.audioSession)
 }
 
 func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -73,8 +89,9 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 
 	channelID, inChannel := b.sessionMap[m.Author.ID]
 	voiceCommand, okVoiceCommand := strategies.VoiceKingCommand[splittedCommand[0]];
+	
 	if okVoiceCommand && inChannel {
-		voiceCommand(s, b.guildID, channelID)
+		voiceCommand(s, b.guildID, channelID, b.setAudioSession, b.audioSession)
 		return
 	} else if okVoiceCommand && !inChannel {
 		utils.SendMessage(s,m.ChannelID, "no estas en un canal de voz nmms we")
@@ -86,17 +103,17 @@ func (b *Bot) MessageCreationHandler(s *discordgo.Session, m *discordgo.MessageC
 
 func (b *Bot) VoiceUpdateHandler(s *discordgo.Session, m *discordgo.VoiceStateUpdate) {
 	b.setUserSession(m)
-	utils.PrettyPrint(b.sessionMap)
 	var ok bool
+
 	if _, ok = b.sessionMap[b.polloID]; ok && m.UserID == b.polloID{
-		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg")
+		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/pollo-greet.ogg",b.setAudioSession, b.audioSession)
 		return
-	}	
+	}
 
 	var message string
 	if _, ok = b.sessionMap[b.victimID]; ok && m.UserID == b.victimID{
 		message = "ola mimir webos mimir \n\nhttps://tenor.com/view/tuca-wevos-huevos-gif-8577692"
-		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a")
+		utils.PlayAudio(s, b.guildID, m.ChannelID, "./media/webos.m4a",b.setAudioSession, b.audioSession)
 		utils.SendMessage(s, b.channelID, message)
 		return
 	} else if m.UserID == b.victimID {

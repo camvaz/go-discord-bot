@@ -28,8 +28,11 @@ func SendMessage(s *discordgo.Session, channelID string, message string) {
 	}()
 }
 
-func PlayAudio(s *discordgo.Session, guildID string, channelID string, track string) {
-
+func PlayAudio(s *discordgo.Session, guildID string, channelID string, track string, setAudioSession func(string), audioSession map[string]bool) {
+	if _, inSession := audioSession[channelID]; inSession {
+		return
+	}
+	setAudioSession(channelID)
 	dgv, err := s.ChannelVoiceJoin(guildID, channelID, false, true)
 	if err != nil {
 		log.Printf("Error: %v", err)
@@ -38,4 +41,5 @@ func PlayAudio(s *discordgo.Session, guildID string, channelID string, track str
 	dgvoice.PlayAudioFile(dgv, track, make(chan bool))
 	dgv.Disconnect()
 	dgv.Close()
+	setAudioSession(channelID)
 }
